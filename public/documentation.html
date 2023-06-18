@@ -1,17 +1,188 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Movie API Documentation</title>
-  </head>
-  <body>
-    <h1>Movie API Documentation</h1>
-    <p>
-      Welcome to the Movie API documentation. This API allows you to 
-retrieve information about movies, including details, ratings, and more. 
-Use the provided endpoints to interact with the API and integrate movie 
-data into your applications.
-    </p>
-    <!-- Add more instructions and details as needed -->
-  </body>
-</html>
+<head>
+  <title>API Documentation</title>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid black;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+  </style>
+</head>
+<body>
+  <h1>API Documentation</h1>
+  <h2>Movie API Endpoints</h2>
+  <table>
+    <tr>
+      <th>Operation</th>
+      <th>Request Method</th>
+      <th>URL Endpoint</th>
+      <th>Response</th>
+    </tr>
+    <tr>
+      <td>Return a list of ALL movies to the user</td>
+      <td>GET</td>
+      <td>/movies</td>
+      <td>JSON array containing data of all movies</td>
+    </tr>
+    <tr>
+      <td>Return data about a single movie by title to the user</td>
+      <td>GET</td>
+      <td>/movies/{title}</td>
+      <td>JSON object containing data about the movie with the specified title</td>
+    </tr>
+    <tr>
+      <td>Return data about a genre by name/title</td>
+      <td>GET</td>
+      <td>/genres/{name}</td>
+      <td>JSON object containing data about the genre with the specified name/title</td>
+    </tr>
+    <tr>
+      <td>Return data about a director by name</td>
+      <td>GET</td>
+      <td>/directors/{name}</td>
+      <td>JSON object containing data about the director with the specified name</td>
+    </tr>
+    <tr>
+      <td>Allow new users to register</td>
+      <td>POST</td>
+      <td>/users/register</td>
+      <td>Text indicating the successful registration of a new user</td>
+    </tr>
+    <tr>
+      <td>Allow users to update their user info (username)</td>
+      <td>PUT</td>
+      <td>/users/{userId}</td>
+      <td>Text indicating the successful update of the user's information</td>
+    </tr>
+    <!-- <tr>
+      <td>Allow users to add a movie to their list of favorites</td>
+      <td>POST</td>
+      <td>/users/{userId}/favorites</td>
+      <td>Text indicating the successful addition of the movie to the user's favorites</td>
+    </tr>
+    <tr>
+      <td>Allow users to remove a movie from their list of favorites</td>
+      <td>DELETE</td>
+      <td>/users/{userId}/favorites/{movieId}</td>
+      <td>Text indicating the successful removal of the movie from the user's favorites</td>
+    </tr>
+    <tr>
+      <td>Allow existing users to deregister</td>
+      <td>DELETE</td>
+      <td>/users/{userId}</td>
+      <td>Text indicating the successful deregistration of the user</td>
+    </tr> -->
+  </table>
 
+  <h2>Endpoint Documentation</h2>
+  <ul>
+    <li>
+      <strong>/movies</strong>
+      <ul>
+        <li><strong>Method:</strong> GET</li>
+        <li><strong>Query Parameters:</strong> None</li>
+        <li><strong>Response:</strong> JSON array</li>
+      </ul>
+    </li>
+    <li>
+      <strong>/movies/{title}</strong>
+      <ul>
+        <li><strong>Method:</strong> GET</li>
+        <li><strong>Query Parameters:</strong> None</li>
+        <li><strong>Response:</strong> JSON object</li>
+      </ul>
+    </li>
+    <li>
+      <strong>/genres/{name}</strong>
+      <ul>
+        <li><strong>Method:</strong> GET</li>
+        <li><strong>Query Parameters:</strong> None</li>
+        <li><strong>Response:</strong> JSON object</li>
+      </ul>
+    </li>
+    <li>
+      <strong>/directors/{name}</strong>
+      <ul>
+        <li><strong>Method:</strong> GET</li>
+        <li><strong>Query Parameters:</strong> None</li>
+        <li><strong>Response:</strong> JSON object</li>
+      </ul>
+    </li>
+    <li>
+      <strong>/users/register</strong>
+      <ul>
+        <li><strong>Method:</strong> POST</li>
+        <li><strong>Request Body:</strong> JSON object</li>
+        <li>
+          <strong>Example Request Body:</strong>
+          <pre>
+            {
+              "username": "john_doe",
+              "email": "john.doe@example.com",
+              "password": "password123"
+            }
+          </pre>
+        </li>
+        <li><strong>Response:</strong> Text</li>
+      </ul>
+    </li>
+    <li>
+      <strong>/users/{userId}</strong>
+      <ul>
+        <li><strong>Method:</strong> PUT</li>
+        <li><strong>Request Body:</strong> JSON object</li>
+        <li>
+          <strong>Example Request Body:</strong>
+          <pre>
+            {
+              "username": "new_username"
+            }
+          </pre>
+        </li>
+        <li><strong>Response:</strong> Text</li>
+      </ul>
+    </li>
+    <!-- <li>
+      <strong>/users/{userId}/favorites</strong>
+      <ul>
+        <li><strong>Method:</strong> POST</li>
+        <li><strong>Request Body:</strong> JSON object</li>
+        <li>
+          <strong>Example Request Body:</strong>
+          <pre>
+            {
+              "movieId": "123456"
+            }
+          </pre>
+        </li>
+        <li><strong>Response:</strong> Text</li>
+      </ul>
+    </li>
+    <li>
+      <strong>/users/{userId}/favorites/{movieId}</strong>
+      <ul>
+        <li><strong>Method:</strong> DELETE</li>
+        <li><strong>Query Parameters:</strong> None</li>
+        <li><strong>Response:</strong> Text</li>
+      </ul>
+    </li>
+    <li>
+      <strong>/users/{userId}</strong>
+      <ul>
+        <li><strong>Method:</strong> DELETE</li>
+        <li><strong>Query Parameters:</strong> None</li>
+        <li><strong>Response:</strong> Text</li>
+      </ul>
+    </li> -->
+  </ul>
+</body>
+</html>
