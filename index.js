@@ -14,9 +14,11 @@ const uuid = require('uuid');
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-let auth = require('./auth')(app);
+
 const passport = require('passport');
 require('./passport');
+
+let auth = require('./auth')(app);
 
 let users = [
   {
@@ -346,7 +348,7 @@ app.post('/users', (req, res) => {
     return res.status(400).send('Username, password, and email are required.');
   }
 
-  Users.findOne({ username: req.params.Username })
+  Users.findOne({ username: { $regex: new RegExp('^' + username + '$', 'i') } })
     .then((user) => {
       if (user) {
         return res.status(400).send(username + ' already exists');
@@ -380,13 +382,19 @@ app.post('/users', (req, res) => {
 
 // Get a user by username
 app.get('/users/:Username', passport.authenticate('jwt', { session: false }), (req, res) => {
-  Users.findOne({ username: req.params.Username })
+  const requestedUsername = req.params.Username.toLowerCase();
+
+  Users.findOne({ username: { $regex: new RegExp('^' + requestedUsername + '$', 'i') } })
     .then((user) => {
-      res.json(user);
+      if (user) {
+        res.json(user);
+      } else {
+        res.status(404).send('User not found');
+      }
     })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send('Error: ' + err);
+    .catch((error) => {
+      console.error(error);
+      res.status(500).send('Internal Server Error');
     });
 });
 
@@ -441,9 +449,12 @@ app.put('/users/:Username', passport.authenticate('jwt', { session: false }), (r
 
 // Add a movie to a user's list of favorites TEST
 app.post('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), (req, res) => {
+  const username = new RegExp(`^${req.params.Username}$`, 'i'); // Case-insensitive username regex
+  const movieID = req.params.MovieID;
+
   Users.findOneAndUpdate(
-    { Username: req.params.Username },
-    { $push: { favoriteMovies: req.params.MovieID } },
+    { username: username }, // Updated field name to 'username'
+    { $push: { favoriteMovies: movieID } },
     { new: true }
   )
     .then((updatedUser) => {
@@ -457,6 +468,8 @@ app.post('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { sess
       res.status(500).send('Error: ' + error);
     });
 });
+
+
 
 
 
@@ -465,9 +478,12 @@ app.post('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { sess
 
 // Delete a movie from a user's list of favorites TEST
 app.delete('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), (req, res) => {
+  const username = new RegExp(`^${req.params.Username}$`, 'i'); // Case-insensitive username regex
+  const movieID = req.params.MovieID;
+
   Users.findOneAndUpdate(
-    { Username: req.params.Username },
-    { $pull: { favoriteMovies: req.params.MovieID } },
+    { username: username }, // Updated field name to 'username'
+    { $pull: { favoriteMovies: movieID } },
     { new: true }
   )
     .then((updatedUser) => {
@@ -483,9 +499,13 @@ app.delete('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { se
 });
 
 
+
+
 // Delete a user by username TEST
 app.delete('/users/:Username', passport.authenticate('jwt', { session: false }), (req, res) => {
-  Users.findOneAndRemove({ Username: req.params.Username })
+  const username = new RegExp(`^${req.params.Username}$`, 'i'); // Case-insensitive username regex
+
+  Users.findOneAndRemove({ username: username }) // Updated field name to 'username'
     .then((user) => {
       if (!user) {
         res.status(404).send(req.params.Username + ' was not found');
@@ -498,6 +518,7 @@ app.delete('/users/:Username', passport.authenticate('jwt', { session: false }),
       res.status(500).send('Error: ' + err);
     });
 });
+
 
 
 
