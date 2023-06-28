@@ -11,12 +11,17 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const uuid = require('uuid');
 
+const { check, validationResult } = require('express-validator');
+
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 const passport = require('passport');
 require('./passport');
+
+const cors = require('cors');
+app.use(cors());
 
 let auth = require('./auth')(app);
 
@@ -327,11 +332,6 @@ app.get('/directors/:name', passport.authenticate('jwt', { session: false }), (r
 });
 
 
-
-
-
-
-
 //Add a user
 /* We’ll expect JSON in this format
 {
@@ -344,18 +344,38 @@ app.get('/directors/:name', passport.authenticate('jwt', { session: false }), (r
 app.post('/users', (req, res) => {
   const { username, password, email, birthday } = req.body;
 
-  if (!username || !password || !email) {
-    return res.status(400).send('Username, password, and email are required.');
+  // Validation for username
+  if (!username || !username.trim()) {
+    return res.status(400).json({ error: 'Username is required.' });
+  }
+
+  // Validation for password
+  if (!password || !password.trim()) {
+    return res.status(400).json({ error: 'Password is required.' });
+  }
+
+  // Validation for email
+  if (!email || !email.trim()) {
+    return res.status(400).json({ error: 'Email is required.' });
+  }
+
+  // Additional validation for email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email format.' });
   }
 
   Users.findOne({ username: { $regex: new RegExp('^' + username + '$', 'i') } })
     .then((user) => {
       if (user) {
-        return res.status(400).send(username + ' already exists');
+        return res.status(400).json({ error: username + ' already exists.' });
       } else {
+        // Hash the password using the hashPassword function
+        const hashedPassword = hashPassword(password);
+
         Users.create({
           username: username,
-          password: password,
+          password: hashedPassword, // Store the hashed password in the database
           email: email,
           birthday: birthday
         })
@@ -368,15 +388,9 @@ app.post('/users', (req, res) => {
     })
     .catch((error) => {
       console.error(error);
-      res.status(500).send('Error: ' + error);
+      res.status(500).send('Internal Server Error');
     });
 });
-
-
-
-
-
-
 
 
 
@@ -397,13 +411,6 @@ app.get('/users/:Username', passport.authenticate('jwt', { session: false }), (r
       res.status(500).send('Internal Server Error');
     });
 });
-
-
-
-
-
-
-
 
 
 // Update a user's info, by username TEST
@@ -443,10 +450,6 @@ app.put('/users/:Username', passport.authenticate('jwt', { session: false }), (r
 });
 
 
-
-
-
-
 // Add a movie to a user's list of favorites TEST
 app.post('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { session: false }), (req, res) => {
   const username = new RegExp(`^${req.params.Username}$`, 'i'); // Case-insensitive username regex
@@ -468,11 +471,6 @@ app.post('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { sess
       res.status(500).send('Error: ' + error);
     });
 });
-
-
-
-
-
 
 
 
@@ -499,8 +497,6 @@ app.delete('/users/:Username/movies/:MovieID', passport.authenticate('jwt', { se
 });
 
 
-
-
 // Delete a user by username TEST
 app.delete('/users/:Username', passport.authenticate('jwt', { session: false }), (req, res) => {
   const username = new RegExp(`^${req.params.Username}$`, 'i'); // Case-insensitive username regex
@@ -520,18 +516,13 @@ app.delete('/users/:Username', passport.authenticate('jwt', { session: false }),
 });
 
 
-
-
-
-
-
-
 // Error-handling middleware
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).send('Internal Server Error');
 });
 
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
+const port = process.env.PORT || 8080;
+app.listen(port, '0.0.0.0',() => {
+ console.log('Listening on Port ' + port);
 });
