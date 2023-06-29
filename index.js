@@ -1,13 +1,34 @@
+const bcrypt = require('bcrypt');
+
+const hashPassword = async (password) => {
+  try {
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    return hashedPassword;
+  } catch (error) {
+    throw error;
+  }
+};
+
+require('dotenv').config();
+
 const mongoose = require('mongoose');
 const Models = require('./models.js');
 
 const Movies = Models.Movie;
 const Users = Models.User;
 
-/*For Localhost*/
-/*mongoose.connect('mongodb://localhost:27017/myFlixDB', { useNewUrlParser: true, useUnifiedTopology: true });*/
-/*For online deploy*/
-mongoose.connect(process.env.CONNECTION_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+async function connectToDatabase() {
+  try {
+    await mongoose.connect(process.env.CONNECTION_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    console.log('Connected to the database');
+  } catch (error) {
+    console.error('Failed to connect to the database:', error.message);
+    process.exit(1);
+  }
+}
+
+connectToDatabase();
 
 const express = require('express');
 const morgan = require('morgan');
@@ -27,6 +48,8 @@ const cors = require('cors');
 app.use(cors());
 
 let auth = require('./auth')(app);
+
+
 
 let users = [
   {
@@ -362,40 +385,39 @@ app.post('/users', (req, res) => {
     return res.status(400).json({ error: 'Email is required.' });
   }
 
-  // Additional validation for email format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.status(400).json({ error: 'Invalid email format.' });
+  // Validation for birthday
+  if (!birthday || !Date.parse(birthday)) {
+    return res.status(400).json({ error: 'Valid birthday is required.' });
   }
 
-  Users.findOne({ username: { $regex: new RegExp('^' + username + '$', 'i') } })
-    .then((user) => {
-      if (user) {
-        return res.status(400).json({ error: username + ' already exists.' });
-      } else {
-        // Hash the password using the hashPassword function
-        const hashedPassword = hashPassword(password);
+  // Create a new user object
+  const hashedPassword = bcrypt.hashSync(password.trim(), 10);
+  const newUser = {
+    id: uuid.v4(),
+    username: username.trim(),
+    password: hashedPassword,
+    email: email.trim(),
+    birthday: new Date(birthday)
+  };
 
-        Users.create({
-          username: username,
-          password: hashedPassword, // Store the hashed password in the database
-          email: email,
-          birthday: birthday
-        })
-          .then((user) => res.status(201).json(user))
-          .catch((error) => {
-            console.error(error);
-            res.status(500).send('Error: ' + error);
-          });
-      }
-    })
-    .catch((error) => {
-      console.error(error);
-      res.status(500).send('Internal Server Error');
-    });
+  // Check if a user with the same username already exists
+  const existingUser = users.find(user => user.username === newUser.username);
+  if (existingUser) {
+    return res.status(409).json({ error: 'Username already exists.' });
+  }
+
+  // Check if a user with the same email already exists
+  const existingEmail = users.find(user => user.email === newUser.email);
+  if (existingEmail) {
+    return res.status(409).json({ error: 'Email already exists.' });
+  }
+
+  // Add the new user to the array of users
+  users.push(newUser);
+
+  // Send the response
+  return res.status(201).json(newUser);
 });
-
-
 
 // Get a user by username
 app.get('/users/:Username', passport.authenticate('jwt', { session: false }), (req, res) => {
